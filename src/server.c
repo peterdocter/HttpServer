@@ -4,6 +4,10 @@
 
 #include "server.h"
 
+int SERVER_PORT = 8000;
+FILE *log_f;//log
+struct thread_pool *pool;
+
 void init_server()
 {
     struct sockaddr_in name;
@@ -14,7 +18,7 @@ void init_server()
     int server_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket == -1)
     {
-        printf("Error\n");
+        printf("Create Socket Error\n");
         exit(-1);
     }
     setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
@@ -31,6 +35,7 @@ void init_server()
 
     pool = init_thread_pool(20);
     pthread_create(&keepalive_pid, NULL, (void *) thread_pool_keepalive, (void *) pool);
+
     //开始监听
     if (listen(server_socket, 5) == -1)
     {

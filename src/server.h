@@ -19,8 +19,6 @@
 
 #include "threadpool.h"
 
-#define SERVER_PORT 8000
-
 struct KeyValue
 {
     char *name;
@@ -40,12 +38,9 @@ struct HttpRequest
 
 struct SocketArg
 {
-    intptr_t client_sock;
+    int client_sock;
     char *ip_address;
 };
-
-FILE *log_f;//log
-struct thread_pool *pool;
 
 void init_server();
 
