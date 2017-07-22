@@ -39,7 +39,7 @@ void accept_request(struct HttpRequest *request)
     free(request);
 }
 
-void response_headers(int client, int type, struct KeyValue *header)
+void response_headers(int client, int FILE_TYPE, struct KeyValue *header)
 {
     char buf[255];
     char *loc_time = local_time();
@@ -61,21 +61,21 @@ void response_headers(int client, int type, struct KeyValue *header)
             p = p->next;
         }
     }
-    switch (type)
+    switch (FILE_TYPE)
     {
-        case 1:
+        case FILE_TYPE_TEXT:
             sprintf(buf, "Content-Type: text/html;charset=utf-8\r\n");
             send(client, buf, strlen(buf), 0);
             break;
-        case 2:
+        case FILE_TYPE_IMAGE:
             sprintf(buf, "Content-Type: image/jpeg\r\n");
             send(client, buf, strlen(buf), 0);
             break;
-        case 3:
+        case FILE_TYPE_JS:
             sprintf(buf, "Content-Type: application/javascript\r\n");
             send(client, buf, strlen(buf), 0);
             break;
-        case 4:
+        case FILE_TYPE_CSS:
             sprintf(buf, "Content-Type: text/css\r\n");
             send(client, buf, strlen(buf), 0);
             break;
@@ -86,7 +86,7 @@ void response_headers(int client, int type, struct KeyValue *header)
     send(client, buf, strlen(buf), 0);
 }
 
-void response_file(int client, char *filepath, int type, struct KeyValue *header)
+void response_file(int client, char *filepath, int FILE_TYPE, struct KeyValue *header)
 {
     FILE *fp;
     char filename[255];
@@ -96,7 +96,7 @@ void response_file(int client, char *filepath, int type, struct KeyValue *header
         not_found(client);
         return;
     }
-    response_headers(client, type, header);
+    response_headers(client, FILE_TYPE, header);
     size_t read_num;
     char buf[1024];
     while ((read_num = fread(buf, 1, 1024, fp)) > 0)
@@ -109,7 +109,7 @@ void response_file(int client, char *filepath, int type, struct KeyValue *header
 void site_index(int client)
 {
     char buf[1024];
-    response_headers(client, 1, NULL);
+    response_headers(client, FILE_TYPE_TEXT, NULL);
     FILE *fp;
     if ((fp = fopen("www/index.html", "r")) == NULL)
     {
@@ -131,7 +131,7 @@ void site_index(int client)
 void not_found(int client)
 {
     char buf[1024];
-    response_headers(client, 1, NULL);
+    response_headers(client, FILE_TYPE_TEXT, NULL);
     FILE *fp;
     if ((fp = fopen("www/404.html", "r")) == NULL)
     {
@@ -181,16 +181,16 @@ void static_file(int client, char *path, char *filetype)
 {
     if (!strcmp(filetype, "png") || !strcmp(filetype, "jpg") || !strcmp(filetype, "jpeg") || !strcmp(filetype, "ico"))
     {
-        response_file(client, path, 2, NULL);
+        response_file(client, path, FILE_TYPE_IMAGE, NULL);
     } else if (!strcmp(filetype, "js"))
     {
-        response_file(client, path, 3, NULL);
+        response_file(client, path, FILE_TYPE_JS, NULL);
     } else if (!strcmp(filetype, "css"))
     {
-        response_file(client, path, 4, NULL);
+        response_file(client, path, FILE_TYPE_CSS, NULL);
     } else
     {
-        response_file(client, path, 1, NULL);
+        response_file(client, path, FILE_TYPE_TEXT, NULL);
     }
 }
 
@@ -229,6 +229,7 @@ char *set_cookie()
     sprintf(cookie, "username=nyserver; sessionid=123456; date=%s", loc_time);
     return cookie;
 }
+
 
 void print_key_value(struct KeyValue *head)
 {

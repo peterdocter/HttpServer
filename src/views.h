@@ -7,6 +7,14 @@
 
 #include "server.h"
 
+typedef enum FILE_TYPE_ENUM
+{
+    FILE_TYPE_IMAGE = 0,
+    FILE_TYPE_JS,
+    FILE_TYPE_TEXT,
+    FILE_TYPE_CSS
+} REQ_FILE_TYPE;
+
 void accept_request(struct HttpRequest *request);
 
 void not_found(int client);

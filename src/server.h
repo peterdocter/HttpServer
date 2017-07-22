@@ -44,6 +44,8 @@ struct SocketArg
 
 void init_server();
 
+void start_server(int server_socket);
+
 void *parser_request(void *arg);
 
 int get_line(int client, char *buf, int size);

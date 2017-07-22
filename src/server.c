@@ -5,14 +5,11 @@
 #include "server.h"
 
 int SERVER_PORT = 8000;
-FILE *log_f;//log
 struct thread_pool *pool;
 
 void init_server()
 {
     struct sockaddr_in name;
-    struct sockaddr_in remote_client;
-    unsigned int client_len;
     int opt = 1;
 
     int server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -33,9 +30,6 @@ void init_server()
         exit(-1);
     }
 
-    pool = init_thread_pool(20);
-    pthread_create(&keepalive_pid, NULL, (void *) thread_pool_keepalive, (void *) pool);
-
     //开始监听
     if (listen(server_socket, 5) == -1)
     {
@@ -43,13 +37,29 @@ void init_server()
         exit(-1);
     }
 
-    log_f = fopen("log.output", "a");
+    if (fork() == 0)
+    {
+        start_server(server_socket);
+    } else
+    {
+        start_server(server_socket);
+    }
+}
+
+void start_server(int server_socket)
+{
+    pool = init_thread_pool(20);
+    pthread_create(&keepalive_pid, NULL, (void *) thread_pool_keepalive, (void *) pool);
+
     signal(SIGINT, stop_server);
 
     printf("Starting server at http://127.0.0.1:%d/ \nQuit the server with CONTROL-C.\n", SERVER_PORT);
 
     while (1)
     {
+        struct sockaddr_in remote_client;
+        unsigned int client_len;
+
         int client_sock = accept(server_socket, (struct sockaddr *) &remote_client, &client_len);
         if (client_sock != -1)
         {
@@ -68,7 +78,6 @@ void stop_server()
     destroy_thread_pool(pool);
     pthread_cancel(keepalive_pid);
     free(loc_time);
-    fclose(log_f);
     exit(0);
 }
 
@@ -92,6 +101,7 @@ void *parser_request(void *arg)
     printf("%s", log_string);
     server_log(log_string);
     free(socket_arg);
+    free(loc_time);
 
     //Get method
     int index = 0;
@@ -329,7 +339,10 @@ void free_memory(struct KeyValue *p)
 
 void server_log(char *string)
 {
+    FILE *log_f;
+    log_f = fopen("log.output", "a");
     fprintf(log_f, "%s", string);
+    fclose(log_f);
 }
 
 char *local_time()
