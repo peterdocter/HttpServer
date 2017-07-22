@@ -3,7 +3,7 @@
 //
 #include "server.h"
 
-int main()
+int main(int argc, char const *argv[])
 {
     init_server();
     return 0;

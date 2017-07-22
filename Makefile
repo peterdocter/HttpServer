@@ -9,4 +9,4 @@ server.o:src/server.c src/server.h
 views.o:src/views.c src/views.h
 	gcc -pthread -c src/views.c
 clean:
-	rm server main.o threadpool.o server.o views.o
+	rm main.o threadpool.o server.o views.o
